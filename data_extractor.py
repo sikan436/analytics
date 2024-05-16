@@ -6,10 +6,9 @@ with open('data.txt') as f:
       s=(",".join( line.split() ))
       print (s ,file=open('statements.sql', 'a'))
 
-def updates(x):
-   return("to_date('"+x+ ",DD-MON-YY')")
+
 df=pd.read_csv('statements.sql',header=None,keep_default_na=False)
-new_column=df.iloc[:,1].apply(updates)
+new_column=df.iloc[:,1]
 df.iloc[:,1]=new_column
 df.to_csv('intermediate_statements2.sql',header=None, index=False)
 
