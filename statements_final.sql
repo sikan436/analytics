@@ -47,3 +47,13 @@ select substring(cast(s.sales_date as text),6,2),s.total_amount  from sales s gr
 -- substring(cast(sales_date as text),6,2)
 
 
+avg_sales.avg_sale_all
+-- select * from stores;
+
+select * from(select store_name, avg((quantity*price))::int as total_sales_for_store,avg(quantity*price)::int from stores group by store_name)  sales
+join
+(select avg(total_sales_for_store) as avg_sale_all
+from (select store_name, avg((quantity*price))::int as total_sales_for_store,avg(quantity*price)::int from stores group by store_name))  avg_sales
+on
+sales.total_sales_for_store>avg_sales.avg_sale_all
+
