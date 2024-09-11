@@ -1,0 +1,114 @@
+-- select * from customer;
+-- select * from bike;
+-- select * from rental;
+-- select * from membership_type;
+-- select * from membership;
+
+
+select  concat(split_part(model,' ',1),' ',split_part(model,' ',2)) as category, count(*) as no_of_bikes from bike group by concat(split_part(model,' ',1),' ',split_part(model,' ',2))
+having count(*)>2;
+
+
+select * from bike
+
+select category, count(1) as number_of_bikes 
+from bike
+group by category
+having count(1) > 2;
+
+select * from customer;
+select count(*) as membership_count,name from membership m left join customer c
+on  c.id=m.customer_id
+group by name;
+
+
+select c.name, count(m.id) as membership_count 
+from membership m
+right join customer c on c.id=m.customer_id
+group by c.name
+order by count(1) desc;
+
+
+select * from rental;
+
+select * from bike;
+id,category,old price per hour,new price per hour,old price per day 
+
+
+select id ,category,price_per_hour as old_price_per_hour
+,case when category='mountain bike' then round(price_per_hour-price_per_hour*20/100,2) 
+	  when category='electric' then round(price_per_hour-price_per_hour*10/100,2)
+	  else
+	  round(price_per_hour-price_per_hour*50/100,2)
+end as new_price_per_hour,
+price_per_day as old_price_per_day
+,case when category='mountain bike' then round(price_per_day-price_per_day*50/100,2) 
+	  when category='electric' then round(price_per_day-price_per_day*20/100,2)
+	  else
+	  round(price_per_day-price_per_day*50/100,2)
+end as new_price_per_day
+from bike
+
+
+select category,sum(case when status='available' then 1 else 0 end) as available,sum(case when status='rented' then 1 else 0 end) as rented from bike
+group by category
+
+select * from bike
+
+
+-- select * from customer;
+-- select * from bike;
+-- select * from rental;
+-- select * from membership_type;
+-- select * from membership;
+with cte as (
+select substring(end_date::text,0,8) as  date,sum(total_paid) as revenue from membership
+group by substring(end_date::text,0,8))
+,cte2 as 
+(select split_part(date,'-',1) as year,split_part(date,'-',2) as month,revenue from cte)
+select * from cte2 
+union all
+select year,null as month,sum(revenue) as revenue from cte2
+group by year
+union all
+select null,null,sum(revenue) from cte2
+
+
+with cte as (
+select substring(start_timestamp::text,0,8) as date,sum(total_paid) as revenue from rental
+group by substring(start_timestamp::text,0,8))
+,cte2 as 
+(select split_part(date,'-',1) as year,split_part(date,'-',2) as month,revenue from cte)
+select * from cte2 
+union all
+select year,null as month,sum(revenue) as revenue from cte2
+group by year
+union all
+select null,null,sum(revenue) from cte2
+order by year,month
+
+select * from membership order by end_date
+select * from membership_type
+with cte 
+as (select customer_id,count(customer_id) as cnt from rental group by customer_id order by count(customer_id))
+,cte2 as 
+(select cnt,case when cnt>10 then 'more than 10'
+             when (cnt>=5 and cnt<=10) then 'between 5 and 10'
+			 when cnt<5 then 'less than 5' end  as category from cte)
+			 
+select  category,count(category) from cte2 group by category
+
+
+with cte as 
+    (select customer_id, count(1)
+    , case when count(1) > 10 then 'more than 10' 
+           when count(1) between 5 and 10 then 'between 5 and 10'
+           else 'fewer than 5'
+      end as category
+    from rental
+    GROUP by customer_id)
+select category as rental_count_category
+, count(*) as customer_count
+from cte 
+group by category
+order by customer_count;
