@@ -1,0 +1,60 @@
+script:
+create table polls
+(
+user_id varchar(4),
+poll_id varchar(3),
+poll_option_id varchar(3),
+amount int,
+created_date date
+)
+-- Insert sample data into the investments table
+INSERT INTO polls (user_id, poll_id, poll_option_id, amount, created_date) VALUES
+('id1', 'p1', 'A', 200, '2021-12-01'),
+('id2', 'p1', 'C', 250, '2021-12-01'),
+('id3', 'p1', 'A', 200, '2021-12-01'),
+('id4', 'p1', 'B', 500, '2021-12-01'),
+('id5', 'p1', 'C', 50, '2021-12-01'),
+('id6', 'p1', 'D', 500, '2021-12-01'),
+('id7', 'p1', 'C', 200, '2021-12-01'),
+('id8', 'p1', 'A', 100, '2021-12-01'),
+('id9', 'p2', 'A', 300, '2023-01-10'),
+('id10', 'p2', 'C', 400, '2023-01-11'),
+('id11', 'p2', 'B', 250, '2023-01-12'),
+('id12', 'p2', 'D', 600, '2023-01-13'),
+('id13', 'p2', 'C', 150, '2023-01-14'),
+('id14', 'p2', 'A', 100, '2023-01-15'),
+('id15', 'p2', 'C', 200, '2023-01-16');
+
+create table poll_answers
+(
+poll_id varchar(3),
+correct_option_id varchar(3)
+)
+
+-- Insert sample data into the poll_answers table
+INSERT INTO poll_answers (poll_id, correct_option_id) VALUES
+('p1', 'C'),('p2', 'A');
+
+
+
+select * from polls;
+
+poll_answers
+
+select * from polls;
+select * from poll_answers;
+
+with win_cte as (
+select p1.*,p2.correct_option_id,(amount*100::decimal/sum(amount::decimal) over (partition by p1.poll_id)) as win_percent from polls p1 inner join poll_answers p2
+on p1.poll_id=p2.poll_id and p1.poll_option_id=p2.correct_option_id)
+,loss_cte as 
+(select p1.*,p2.correct_option_id,sum(amount) over (partition by p1.poll_id) as loss_total from polls p1 inner join poll_answers p2
+on p1.poll_id=p2.poll_id and p1.poll_option_id!=p2.correct_option_id)
+
+select distinct w.user_id,w.poll_id,w.amount,l.loss_total,w.win_percent,((w.win_percent/100)*l.loss_total)::integer from win_cte w
+inner join loss_cte l
+on w.poll_id=l.poll_id
+order by w.poll_id,w.user_id
+
+
+
